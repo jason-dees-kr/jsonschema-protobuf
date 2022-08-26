@@ -3,6 +3,8 @@
 
 Converts [JSON Schema](http://json-schema.org/) to [Protocol Buffers](https://developers.google.com/protocol-buffers).
 
+[Uses this](https://github.com/mafintosh/protocol-buffers-schema/blob/master/stringify.js)
+
 ## Install
 ```
 npm install -g jsonschema-protobuf
