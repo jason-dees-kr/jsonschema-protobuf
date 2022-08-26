@@ -7,7 +7,8 @@
     "jsonschema-protobuf": "cli.js"
   },
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "start-flow": "node cli.js ~/Projects/schema-registry/dist/schemas/banner/scenarios/start-flow/latest/start-flow.json StartFlow"
   },
   "repository": {
     "type": "git",

@@ -8,7 +8,7 @@ var mappings = {
   'boolean': 'bool'
 }
 
-module.exports = function (schema) {
+module.exports = function (schema, name) {
   if (typeof schema === 'string') schema = JSON.parse(schema)
   var result = {
     syntax: 2,
@@ -18,14 +18,14 @@ module.exports = function (schema) {
   }
 
   if (schema.type === 'object') {
-    result.messages.push(Message(schema))
+    result.messages.push(Message(schema, name))
   }
   return protobuf.stringify(result)
 }
 
-function Message (schema) {
+function Message (schema, name) {
   var message = {
-    name: schema.name,
+    name: name ?? schema.name,
     enums: [],
     messages: [],
     fields: []
@@ -38,6 +38,13 @@ function Message (schema) {
       field.name = key
       message.messages.push(Message(field))
     } else {
+      if (field.enum !== undefined){
+        console.log("enum", field);
+        message.enums.push(Enum(key, field.enum));
+      }
+      if(field.const !== undefined) {
+        console.log("const", field);
+      }
       field.name = key
       message.fields.push(Field(field, tag))
       tag += 1
@@ -55,6 +62,17 @@ function Message (schema) {
   return message
 }
 
+function Enum(name, options) {
+  var optionsObj = {};
+  for( var i = 0; i < options.length;  i++) {
+    optionsObj[options[i].replace(/ /g, "")] = i;
+  }
+  return {
+    name: name.toLocaleUpperCase(),
+    values: optionsObj
+  }
+}
+
 function Field (field, tag) {
   var type = mappings[field.type] || field.type
   var repeated = false
@@ -63,11 +81,25 @@ function Field (field, tag) {
     repeated = true
     type = field.items.type
   }
+  var constant = undefined
+  if(field.const !== undefined) {
+    var val = field.const;
+    if(field.type == "string") {
+      val = '"'+val+'"';
+    }
+    constant = {
+      default: val
+    };
+  }
+  if(field.enum !== undefined){
+    type = field.name.toLocaleUpperCase();
+  }
 
   return {
     name: field.name,
     type: type,
     tag: tag,
-    repeated: repeated
+    repeated: repeated,
+    options: constant
   }
 }
