@@ -43,7 +43,9 @@ function Message (schema, name) {
         message.enums.push(Enum(key, field.enum));
       }
       if(field.const !== undefined) {
+        // instead of doing a value, do a a single entry enum
         console.log("const", field);
+        message.enums.push(Enum(key, [cleanupConstant(field.const)]));
       }
       field.name = key
       message.fields.push(Field(field, tag))
@@ -84,11 +86,15 @@ function Field (field, tag) {
   var constant = undefined
   if(field.const !== undefined) {
     var val = field.const;
-    if(field.type == "string") {
-      val = '"'+val+'"';
-    }
+    // if(field.type == "string") {
+    //   val = '"'+val+'"';
+    // }
+    // Scenario version information is ok with numbers in the enums based on language
+    // Some languages are even fine with 1.2.3
+    // could turn it into ONE_TWO_THREE
+    type = field.name.toLocaleUpperCase();
     constant = {
-      default: val
+      default: cleanupConstant(field.const)
     };
   }
   if(field.enum !== undefined){
@@ -102,4 +108,8 @@ function Field (field, tag) {
     repeated: repeated,
     options: constant
   }
+}
+
+function cleanupConstant(constant) {
+  return constant.replace(/[.]/g, '|').replace(/[ ]/g, '_');
 }
